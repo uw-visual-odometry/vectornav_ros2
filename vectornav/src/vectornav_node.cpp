@@ -76,7 +76,7 @@ VectorNavNode::VectorNavNode(const rclcpp::NodeOptions& options)
     imu_msg_.angular_velocity_covariance[8] = gyroscope_variance;
 
     // Use vncxx to subscribe to the async stream of data
-    sensor_.writeAsyncDataOutputType(AsciiAsync::VNQMR);
+    sensor_.writeAsyncDataOutputType(AsciiAsync::VNQMR, vn::protocol::uart::ASYNCMODE_PORT2, true);
     sensor_.registerAsyncPacketReceivedHandler(this, &VectorNavNode::vncxx_callback);
 }
 
