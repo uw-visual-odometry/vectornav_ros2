@@ -90,7 +90,7 @@ void VectorNavNode::vncxx_callback(void* user_data, Packet& packet, size_t index
 }
 
 void VectorNavNode::read_imu(Packet& packet, size_t index) {
-    imu_msg_.header.stamp = rclcpp::Time();
+    imu_msg_.header.stamp = this->get_clock()->now();
 
     if (packet.type() != Packet::TYPE_ASCII) {
         RCLCPP_ERROR(get_logger(), "Did not receive ASCII packet.");
