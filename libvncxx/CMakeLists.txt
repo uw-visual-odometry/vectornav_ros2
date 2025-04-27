@@ -45,8 +45,7 @@ target_include_directories(
                       "$<INSTALL_INTERFACE:include>")
 
 ament_export_include_directories(include)
-ament_export_libraries(vncxx)
-ament_export_interfaces(export_libvncxx HAS_LIBRARY_TARGET)
+ament_export_targets(export_libvncxx HAS_LIBRARY_TARGET)
 
 install(
   TARGETS vncxx
