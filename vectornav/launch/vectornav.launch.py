@@ -4,16 +4,17 @@ from launch_ros.descriptions import ComposableNode
 
 
 def generate_launch_description():
+    
     container = ComposableNodeContainer(
-        node_name='vectornav_container',
-        node_namespace='',
+        name='vectornav_container',
+        namespace='',
         package='rclcpp_components',
-        node_executable='component_container',
+        executable='component_container',
         composable_node_descriptions=[
             ComposableNode(
                 package='vectornav',
-                node_plugin='vn_ros::VectorNavNode',
-                node_name='vectornav_node',
+                plugin='vn_ros::VectorNavNode',
+                name='vectornav_node',
                 parameters=[{
                         "sensor_port": "/dev/ttyUSB0",
                         "baudrate": 921600,
