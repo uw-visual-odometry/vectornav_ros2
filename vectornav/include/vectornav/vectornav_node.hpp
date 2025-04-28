@@ -17,7 +17,9 @@ class VectorNavNode : public rclcpp::Node {
 
     vn::sensors::VnSensor sensor_;
 
-    sensor_msgs::msg::Imu                               imu_msg_;
+    std::string   frame_id_;
+    double accelerometer_variance_, gyroscope_variance_;
+
     rclcpp::Publisher<sensor_msgs::msg::Imu>::SharedPtr publisher_;
     size_t                                              samples_read;
 };

@@ -61,19 +61,11 @@ VectorNavNode::VectorNavNode(const rclcpp::NodeOptions& options)
     RCLCPP_INFO(get_logger(), "Sampling frequency: %i Hz", sensor_.readAsyncDataOutputFrequency());
 
     // Construct parts of the imu message
-    imu_msg_.header.frame_id = parameters_client->get_parameter<std::string>("frame_id");
+    frame_id_ = parameters_client->get_parameter<std::string>("frame_id");
 
-    const auto gyroscope_variance = parameters_client->get_parameter<double>("gyroscope_variance");
-    const auto accelerometer_variance =
+    gyroscope_variance_ = parameters_client->get_parameter<double>("gyroscope_variance");
+    accelerometer_variance_ =
         parameters_client->get_parameter<double>("accelerometer_variance");
-
-    imu_msg_.linear_acceleration_covariance[0] = accelerometer_variance;
-    imu_msg_.linear_acceleration_covariance[4] = accelerometer_variance;
-    imu_msg_.linear_acceleration_covariance[8] = accelerometer_variance;
-
-    imu_msg_.angular_velocity_covariance[0] = gyroscope_variance;
-    imu_msg_.angular_velocity_covariance[4] = gyroscope_variance;
-    imu_msg_.angular_velocity_covariance[8] = gyroscope_variance;
 
     // Use vncxx to subscribe to the async stream of data
     sensor_.writeAsyncDataOutputType(AsciiAsync::VNQMR, vn::protocol::uart::ASYNCMODE_PORT2, true);
@@ -90,6 +82,7 @@ void VectorNavNode::vncxx_callback(void* user_data, Packet& packet, size_t index
 }
 
 void VectorNavNode::read_imu(Packet& packet, size_t index) {
+    sensor_msgs::msg::Imu  imu_msg;    
     const auto ts = this->get_clock()->now();
 
     if (packet.type() != Packet::TYPE_ASCII) {
@@ -108,21 +101,31 @@ void VectorNavNode::read_imu(Packet& packet, size_t index) {
     vn::math::vec3f linear_acceleration;
     packet.parseVNQMR(&quaternion, &magnetic_field, &linear_acceleration, &angular_rates);
 
-    imu_msg_.angular_velocity.x = angular_rates.x;
-    imu_msg_.angular_velocity.y = angular_rates.y;
-    imu_msg_.angular_velocity.z = angular_rates.z;
+    imu_msg.angular_velocity.x = angular_rates.x;
+    imu_msg.angular_velocity.y = angular_rates.y;
+    imu_msg.angular_velocity.z = angular_rates.z;
 
-    imu_msg_.linear_acceleration.x = linear_acceleration.x;
-    imu_msg_.linear_acceleration.y = linear_acceleration.y;
-    imu_msg_.linear_acceleration.z = linear_acceleration.z;
+    imu_msg.linear_acceleration.x = linear_acceleration.x;
+    imu_msg.linear_acceleration.y = linear_acceleration.y;
+    imu_msg.linear_acceleration.z = linear_acceleration.z;
 
-    imu_msg_.orientation.w = quaternion.w;
-    imu_msg_.orientation.x = quaternion.x;
-    imu_msg_.orientation.y = quaternion.y;
-    imu_msg_.orientation.z = quaternion.z;
+    imu_msg.orientation.w = quaternion.w;
+    imu_msg.orientation.x = quaternion.x;
+    imu_msg.orientation.y = quaternion.y;
+    imu_msg.orientation.z = quaternion.z;
 
-    imu_msg_.header.stamp = ts;
-    publisher_->publish(imu_msg_);
+    imu_msg.linear_acceleration_covariance[0] = accelerometer_variance_;
+    imu_msg.linear_acceleration_covariance[4] = accelerometer_variance_;
+    imu_msg.linear_acceleration_covariance[8] = accelerometer_variance_;
+
+    imu_msg.angular_velocity_covariance[0] = gyroscope_variance_;
+    imu_msg.angular_velocity_covariance[4] = gyroscope_variance_;
+    imu_msg.angular_velocity_covariance[8] = gyroscope_variance_;
+
+    imu_msg.header.stamp = ts;
+    imu_msg.header.frame_id = frame_id_;
+
+    publisher_->publish(imu_msg);
     samples_read++;
 }
 
